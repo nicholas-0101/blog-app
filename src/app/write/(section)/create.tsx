@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Formik, Form, FormikProps, FormikValues } from "formik";
 import { ICreateValue, CreateSchema } from "./CreateSchema";
 import axios from "axios";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -21,67 +21,25 @@ import {
 import { useAccountStore } from "@/lib/store/accountStore";
 
 export default function createSection() {
+  const router = useRouter();
   const account = useAccountStore((state) => state.account);
-  const [editingBlog, setEditingBlog] = useState<any>(null);
-
-  const defaultValues: ICreateValue = {
-    title: "",
-    thumbnail: "",
-    categories: "",
-    content: "",
-  };
 
   const onPost = async (values: ICreateValue) => {
     try {
-      // console.log(values);
-      // console.log(account)
-      // const result = await axios.post(
-      //   "https://upwardskin-us.backendless.app/api/data/blogs",
-      //   values,
-      // );
+      const payload = { // to store the data to backend
+        title: values.title,
+        thumbnail: values.thumbnail,
+        category: values.categories
+          ? values.categories.toLowerCase()
+          : undefined,
+        content: values.content,
+        authorId: account?.id,
+      };
 
-      // const blogId = result.data.objectId
-      // console.log(blogId)
-      // await axios.post(
-      //   `https://upwardskin-us.backendless.app/api/data/blogs/${blogId}/account`,
-      //   [
-      //     {
-      //       __type: "Pointer",
-      //       className: "accounts",
-      //       objectId: account,
-      //     }
-      //   ],
-      // );
-
-
-      // alert("your story just posted");
-      // router.replace("#manage");
-
-
-      if (!account?.objectId) {
-        throw new Error("Account objectId is missing!");
-      }
-
-      // Step 1: Create blog post (without relation)
-      const result = await axios.post(
-        "https://upwardskin-us.backendless.app/api/data/blogs",
-        values
-      );
-
-      const blogId = result.data?.objectId;
-      if (!blogId) {
-        throw new Error("Failed to retrieve blog objectId after creation.");
-      }
-
-      // Step 2: Create relation via /blogs/:id/account
-      await axios.put(
-        `https://upwardskin-us.backendless.app/api/data/blogs/${blogId}/account`,
-        {
-          objectIds: account.objectId,
-        }
-      );
+      await axios.post("http://localhost:4001/blog/create", payload);
 
       alert("Publish blog success");
+      router.replace("/explore");
     } catch (error: any) {
       console.error(
         "Error publishing blog:",
@@ -104,10 +62,10 @@ export default function createSection() {
               <h1 className="font-black text-3xl">Create a New Story</h1>
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-0">
-                <label>Blog Title</label>
-                <span className="text-red-400 italic text-sm">
-                  {errors.title}
-                </span>
+                  <label>Blog Title</label>
+                  <span className="text-red-400 italic text-sm">
+                    {errors.title}
+                  </span>
                 </div>
                 <Input
                   placeholder="Enter an engaging title for your blog post..."
@@ -120,10 +78,10 @@ export default function createSection() {
               </div>
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-0">
-                <label>Featured Image</label>
-                <span className="text-red-400 italic text-sm">
-                  {errors.thumbnail}
-                </span>
+                  <label>Featured Image</label>
+                  <span className="text-red-400 italic text-sm">
+                    {errors.thumbnail}
+                  </span>
                 </div>
                 <Input
                   placeholder="Enter an URL for your thumbnail..."

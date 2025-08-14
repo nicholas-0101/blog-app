@@ -31,12 +31,12 @@ import { create } from "zustand";
 import axios from "axios";
 
 interface Blog {
-  objectId: string;
+  id: string;
   title: string;
   thumbnail: string;
   content: string;
-  categories: string;
-  created: string;
+  category: string;
+  createdAt: string;
 }
 
 interface BlogStore {
@@ -48,10 +48,8 @@ export const useBlogStore = create<BlogStore>((set) => ({
   blogs: [],
   fetchBlogs: async () => {
     try {
-      const res = await axios.get(
-        "https://upwardskin-us.backendless.app/api/data/blogs"
-      );
-      set({ blogs: res.data });
+      const res = await axios.get("http://localhost:4001/blog");
+      set({ blogs: res.data.blogs });
     } catch (err) {
       console.error("Error fetching blogs:", err);
     }

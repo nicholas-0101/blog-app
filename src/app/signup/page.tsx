@@ -17,7 +17,7 @@ const SignupPage = () => {
 
   const [showPassword, setShowPassword] = useState(false);
 
-  // untuk menambah data user ke database
+  // add user data to database
   const onSignup = async (values: ISignUpValue) => {
     try {
       const result = await axios.post(
@@ -29,7 +29,7 @@ const SignupPage = () => {
         }
       );
 
-      alert("registrasi berhasil");
+      alert("Register succesfull");
       router.replace("/signin");
     } catch (error) {
       console.log(error);

@@ -9,7 +9,7 @@ export const CreateSchema = Yup.object().shape({
   });
 
 export interface ICreateValue {
-  title: string; //title tidak boleh ada ' ""
+  title: string; 
   thumbnail: string;
   content: string;
   categories: string;
