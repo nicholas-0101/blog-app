@@ -35,7 +35,7 @@ async function BlogDetailPage(props: IBlogDetailPageProps) {
           alt="thumbnail"
         />
         <div className="flex gap-1 text-neutral-500">
-          <h2>{new Date(detail?.created).toLocaleDateString("id-ID")}</h2>
+          <h2>{new Date(detail?.createdAt).toLocaleDateString("id-ID")}</h2>
           <p>•</p>
           <h2>
             {/* show username on the blog detail */}

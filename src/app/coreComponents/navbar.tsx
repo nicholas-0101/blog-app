@@ -28,14 +28,16 @@ function Navbar() {
   // keep login
   const keeplogin = async () => {
     try {
-      const userId = localStorage.getItem("id");
-      if (userId) {
-        const response = await axios.get(
-          `http://localhost:4001/blog/user/${userId}`
-        );
-        if (response.data.success) {
-          setAccount(response.data.user);
-        }
+      if (localStorage.getItem("tkn")) {
+        const result = await axios.get(`http://localhost:4001/blog/user/keep`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("tkn")}`,
+          },
+        });
+        console.log(result.data);
+
+        setAccount(result.data.user); // menyimpan data ke global state zustand
+        localStorage.setItem("tkn", result.data.user.token); // menyimpan data id ke localStorage untuk nanti keeplogin
       }
     } catch (error) {
       console.log(error);
@@ -68,7 +70,7 @@ function Navbar() {
         {account?.email ? (
           <div className="relative" ref={menuRef}>
             <Button onClick={() => setMenuOpen(!menuOpen)} variant="link">
-              <p className="font-black font-sans text-[#18182b]">{`Hello, ${account.username}`}</p>
+              <p className="font-black font-sans text-[#18182b]">{`Hello, ${account.email}`}</p>
             </Button>
 
             {menuOpen && (

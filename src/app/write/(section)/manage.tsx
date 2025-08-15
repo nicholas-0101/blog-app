@@ -5,7 +5,7 @@ import { useBlogStore } from "@/lib/store/blogStore";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Filter, PenIcon, Trash2Icon } from "lucide-react";
+import { Filter, PenIcon, Search, Trash2Icon } from "lucide-react";
 import Image from "next/image";
 import axios from "axios";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,7 +22,8 @@ import {
 export default function ManageSection() {
   const { blogs, fetchBlogs } = useBlogStore();
   const [editingBlogId, setEditingBlogId] = useState<any>(null); // stores the id of the blog currently being edited
-  const [editedValues, setEditedValues] = useState<{ // stores edited values
+  const [editedValues, setEditedValues] = useState<{
+    // stores edited values
     title: string;
     thumbnail: string;
     content: string;
@@ -34,7 +35,8 @@ export default function ManageSection() {
     category: "",
   });
 
-  const handleEdit = (blog: any) => { // into edit mode if we click the edit button
+  const handleEdit = (blog: any) => {
+    // into edit mode if we click the edit button
     setEditingBlogId(blog.id);
     setEditedValues({
       title: blog.title,
@@ -44,7 +46,8 @@ export default function ManageSection() {
     });
   };
 
-  const onSave = async (id: string) => { // save the edtied blog
+  const onSave = async (id: string) => {
+    // save the edtied blog
     try {
       await axios.patch(`http://localhost:4001/blog/edit/${id}`, editedValues);
       alert("Blog updated successfully");
@@ -55,7 +58,9 @@ export default function ManageSection() {
     }
   };
 
-  const handleDelete = async (id: string) => { // delete blog if we click delete button
+  const handleDelete = async (id: string) => {
+    // delete blog if we click delete button
+    if (!confirm("Delete this blog?")) return;
     try {
       await axios.delete(`http://localhost:4001/blog/delete/${id}`);
       fetchBlogs(); // to refresh list
@@ -64,7 +69,8 @@ export default function ManageSection() {
     }
   };
 
-  useEffect(() => { // fecth the blogs list
+  useEffect(() => {
+    // fecth the blogs list
     fetchBlogs();
   }, [fetchBlogs]);
 
@@ -73,10 +79,13 @@ export default function ManageSection() {
       <div className="flex justify-between">
         <h1 className="font-black text-3xl">Your Stories</h1>
 
-        <div className="flex justify-center items-center">
+        <div className="flex justify-center items-center gap-2">
+          <div className="flex flex-col justify-center items-center">
+            <Search color="#475569" />
+          </div>
           <div className="w-80">
             <Input
-              placeholder="⌕  Search articles..."
+              placeholder="Search articles..."
               type="text"
               name="search"
               className="p-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600"
@@ -123,7 +132,9 @@ export default function ManageSection() {
                   <div className="flex flex-col gap-2">
                     <Input
                       value={editedValues.title}
-                      onChange={(e) => // to change title vlue (same as the other)
+                      onChange={(
+                        e // to change title vlue (same as the other)
+                      ) =>
                         setEditedValues({
                           ...editedValues, // keep the other edited values
                           title: e.target.value, // only edit title value
@@ -182,7 +193,12 @@ export default function ManageSection() {
                       </Select>
 
                       <div className="flex gap-2">
-                        <Button onClick={() => onSave(blog.id)} className="cursor-pointer">Save</Button>
+                        <Button
+                          onClick={() => onSave(blog.id)}
+                          className="cursor-pointer"
+                        >
+                          Save
+                        </Button>
                         <Button
                           variant="outline"
                           className="cursor-pointer"
@@ -193,32 +209,35 @@ export default function ManageSection() {
                       </div>
                     </div>
                   </div>
-                ) : ( // if not in edit mode (shows the list of blogs)
-                  <div className="flex flex-col gap-1"> 
-                    <div className="flex justify-between items-start"> 
-                      <h2 className="text-base font-bold">{blog.title}</h2> 
-                      <div className="flex gap-2"> 
-                        <Button 
-                          variant="ghost"
-                          size="sm"
-                          className="cursor-pointer"
-                          onClick={() => handleEdit(blog)}
-                        >
-                          <PenIcon color="#364153" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="cursor-pointer"
-                          onClick={() => handleDelete(blog.id)}
-                        >
-                          <Trash2Icon color="#FF8080" />
-                        </Button>
+                ) : (
+                  // if not in edit mode (shows the list of blogs)
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-0">
+                      <div className="flex justify-between items-start">
+                        <h2 className="text-base font-bold">{blog.title}</h2>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="cursor-pointer"
+                            onClick={() => handleEdit(blog)}
+                          >
+                            <PenIcon color="#364153" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="cursor-pointer"
+                            onClick={() => handleDelete(blog.id)}
+                          >
+                            <Trash2Icon color="#FF8080" />
+                          </Button>
+                        </div>
                       </div>
+                      <span className="inline-flex bg-black text-white text-xs font-semibold px-3 py-1 rounded-full justify-center w-20">
+                        {blog.category}
+                      </span>
                     </div>
-                    <span className="inline-flex bg-black text-white text-xs font-semibold px-3 py-1 rounded-full justify-center w-20">
-                      {blog.category}
-                    </span>
                     <p className="text-sm text-muted-foreground line-clamp-2 break-words">
                       {blog.content}
                     </p>

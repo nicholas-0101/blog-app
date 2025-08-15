@@ -29,7 +29,7 @@ const SignupPage = () => {
         }
       );
 
-      alert("Register succesfull");
+      alert(result.data.message);
       router.replace("/signin");
     } catch (error) {
       console.log(error);

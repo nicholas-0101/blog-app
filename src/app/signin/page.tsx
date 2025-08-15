@@ -36,8 +36,8 @@ export default function SignInPage() {
       console.log(result.data);
       if (result.data.success) {
         setAccount(result.data.user); // menyimpan data ke global state zustand
-        localStorage.setItem("id", result.data.user.id); // menyimpan data id ke localStorage untuk nanti keeplogin
-        alert(`Welcome, ${result.data.user.username}`);
+        localStorage.setItem("tkn", result.data.user.token); // menyimpan data id ke localStorage untuk nanti keeplogin
+        alert(`Welcome, ${result.data.user.email}`);
         window.location.replace("/");
       } else {
         alert("Account not found");

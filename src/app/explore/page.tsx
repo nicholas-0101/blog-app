@@ -5,7 +5,7 @@ import axios from "axios";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Filter } from "lucide-react";
+import { Filter, Search } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -23,7 +23,6 @@ interface BlogPost {
 
 export default function ExploreSection() {
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
-  const [search, setSearch] = useState("");
 
   const fetchBlogs = async () => {
     try {
@@ -40,10 +39,6 @@ export default function ExploreSection() {
     fetchBlogs();
   }, []);
 
-  const filteredBlogs = blogs.filter((blog) =>
-    blog.title.toLowerCase().includes(search.toLowerCase())
-  );
-
   return (
     <div className="min-h-screen bg-white">
       <section className="w-full flex justify-center">
@@ -59,21 +54,27 @@ export default function ExploreSection() {
 
           <div className="flex justify-center items-center"></div>
 
-          <div className="w-full flex justify-between">
-            <div className="max-w-lg w-full">
-              <Input
-                placeholder="⌕  Search articles..."
-                type="text"
-                name="search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600"
-              />
+          <div className="w-full flex justify-between gap-4">
+            <div className="w-full flex gap-2">
+              <div className="flex flex-col justify-center items-center">
+                <Search color="#475569" />
+              </div>
+              <div className="max-w-lg w-full">
+                <Input
+                  placeholder="Search articles..."
+                  type="text"
+                  name="search"
+                  className="w-full p-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                />
+              </div>
             </div>
             <div className="flex gap-2">
               <div className="flex flex-col justify-center items-center">
                 <Filter color="#475569" />
               </div>
+              <Button className="rounded-lg cursor-pointer" variant={"outline"}>
+                All
+              </Button>
               <Button className="rounded-lg cursor-pointer" variant={"outline"}>
                 Technology
               </Button>
@@ -93,7 +94,7 @@ export default function ExploreSection() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 py-10">
-            {filteredBlogs.map((blog) => (
+            {blogs.map((blog) => (
               <Link href={`/blog-detail/${blog.title}`} key={blog.id}>
                 <Card className="p-4 rounded-xl shadow-sm transition hover:shadow-lg text-left cursor-pointer">
                   <div className="flex flex-col gap-1">
