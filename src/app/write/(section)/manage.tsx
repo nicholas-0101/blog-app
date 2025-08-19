@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useBlogStore } from "@/lib/store/blogStore";
+import { useAccountStore } from "@/lib/store/accountStore";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Filter, PenIcon, Search, Trash2Icon } from "lucide-react";
+import { Filter, PenIcon, Search, SearchX, Trash2Icon } from "lucide-react";
 import Image from "next/image";
 import axios from "axios";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,7 +21,10 @@ import {
 } from "@/components/ui/select";
 
 export default function ManageSection() {
+  const { account } = useAccountStore();
   const { blogs, fetchBlogs } = useBlogStore();
+  const { myBlogs, fetchMyBlogs } = useBlogStore();
+  const [search, setSearch] = useState("");
   const [editingBlogId, setEditingBlogId] = useState<any>(null); // stores the id of the blog currently being edited
   const [editedValues, setEditedValues] = useState<{
     // stores edited values
@@ -71,8 +75,19 @@ export default function ManageSection() {
 
   useEffect(() => {
     // fecth the blogs list
-    fetchBlogs();
-  }, [fetchBlogs]);
+    if (account?.id) {
+      fetchMyBlogs(parseInt(account.id));
+    }
+  }, [account?.id]);
+
+  const filteredBlogs = myBlogs.filter((blog) => {
+    const searchLower = search.toLowerCase();
+    return (
+      blog.title.toLowerCase().includes(searchLower) ||
+      blog.category.toLowerCase().includes(searchLower) ||
+      blog.content.toLowerCase().includes(searchLower)
+    );
+  });
 
   return (
     <Card className="px-10">
@@ -88,6 +103,8 @@ export default function ManageSection() {
               placeholder="Search articles..."
               type="text"
               name="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               className="p-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600"
             />
           </div>
@@ -111,146 +128,152 @@ export default function ManageSection() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
-        {blogs.map((blog) => (
-          <Card
-            key={blog.id}
-            className="p-4 rounded-xl shadow-sm overflow-hidden transition-shadow hover:shadow-lg"
-          >
-            <div className="flex gap-4">
-              <div className="w-36 h-28 flex-shrink-0 bg-muted rounded-md overflow-hidden relative">
-                <Image
-                  src={blog.thumbnail}
-                  alt={blog.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
+      {filteredBlogs.length === 0 ? (
+        <p className="text-gray-500 text-center text-2xl font-medium flex flex-col gap-2 justify-center items-center py-15">
+          <SearchX color="#475569" size={150} /> Blog Not Found
+        </p>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {filteredBlogs.map((blog) => (
+            <Card
+              key={blog.id}
+              className="p-4 rounded-xl shadow-sm overflow-hidden transition-shadow hover:shadow-lg"
+            >
+              <div className="flex gap-4">
+                <div className="w-36 h-28 flex-shrink-0 bg-muted rounded-md overflow-hidden relative">
+                  <Image
+                    src={blog.thumbnail}
+                    alt={blog.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
 
-              <div className="text-left flex-1">
-                {editingBlogId === blog.id ? ( // if blog id = that blog that want to edit, so shown editing mode
-                  <div className="flex flex-col gap-2">
-                    <Input
-                      value={editedValues.title}
-                      onChange={(
-                        e // to change title vlue (same as the other)
-                      ) =>
-                        setEditedValues({
-                          ...editedValues, // keep the other edited values
-                          title: e.target.value, // only edit title value
-                        })
-                      }
-                      placeholder="Title"
-                    />
-
-                    <Input
-                      value={editedValues.thumbnail}
-                      onChange={(e) =>
-                        setEditedValues({
-                          ...editedValues,
-                          thumbnail: e.target.value,
-                        })
-                      }
-                      placeholder="Thumbnail URL"
-                    />
-
-                    <Textarea
-                      value={editedValues.content}
-                      onChange={(e) =>
-                        setEditedValues({
-                          ...editedValues,
-                          content: e.target.value,
-                        })
-                      }
-                      placeholder="Content"
-                      className="h-24"
-                    />
-
-                    <div className="flex justify-between">
-                      <Select
-                        value={editedValues.category}
-                        onValueChange={(value) =>
+                <div className="text-left flex-1">
+                  {editingBlogId === blog.id ? ( // if blog id = that blog that want to edit, so shown editing mode
+                    <div className="flex flex-col gap-2">
+                      <Input
+                        value={editedValues.title}
+                        onChange={(
+                          e // to change title vlue (same as the other)
+                        ) =>
                           setEditedValues({
-                            ...editedValues,
-                            category: value,
+                            ...editedValues, // keep the other edited values
+                            title: e.target.value, // only edit title value
                           })
                         }
-                      >
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectItem value="technology">
-                              Technology
-                            </SelectItem>
-                            <SelectItem value="food">Food</SelectItem>
-                            <SelectItem value="travel">Travel</SelectItem>
-                            <SelectItem value="health">Health</SelectItem>
-                            <SelectItem value="finance">Finance</SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
+                        placeholder="Title"
+                      />
 
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => onSave(blog.id)}
-                          className="cursor-pointer"
+                      <Input
+                        value={editedValues.thumbnail}
+                        onChange={(e) =>
+                          setEditedValues({
+                            ...editedValues,
+                            thumbnail: e.target.value,
+                          })
+                        }
+                        placeholder="Thumbnail URL"
+                      />
+
+                      <Textarea
+                        value={editedValues.content}
+                        onChange={(e) =>
+                          setEditedValues({
+                            ...editedValues,
+                            content: e.target.value,
+                          })
+                        }
+                        placeholder="Content"
+                        className="h-24"
+                      />
+
+                      <div className="flex justify-between">
+                        <Select
+                          value={editedValues.category}
+                          onValueChange={(value) =>
+                            setEditedValues({
+                              ...editedValues,
+                              category: value,
+                            })
+                          }
                         >
-                          Save
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="cursor-pointer"
-                          onClick={() => setEditingBlogId(null)} // set editing blog id to null, so back to blog list
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  // if not in edit mode (shows the list of blogs)
-                  <div className="flex flex-col gap-2">
-                    <div className="flex flex-col gap-0">
-                      <div className="flex justify-between items-start">
-                        <h2 className="text-base font-bold">{blog.title}</h2>
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Select a category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectItem value="technology">
+                                Technology
+                              </SelectItem>
+                              <SelectItem value="food">Food</SelectItem>
+                              <SelectItem value="travel">Travel</SelectItem>
+                              <SelectItem value="health">Health</SelectItem>
+                              <SelectItem value="finance">Finance</SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+
                         <div className="flex gap-2">
                           <Button
-                            variant="ghost"
-                            size="sm"
+                            onClick={() => onSave(blog.id)}
                             className="cursor-pointer"
-                            onClick={() => handleEdit(blog)}
                           >
-                            <PenIcon color="#364153" />
+                            Save
                           </Button>
                           <Button
-                            variant="ghost"
-                            size="sm"
+                            variant="outline"
                             className="cursor-pointer"
-                            onClick={() => handleDelete(blog.id)}
+                            onClick={() => setEditingBlogId(null)} // set editing blog id to null, so back to blog list
                           >
-                            <Trash2Icon color="#FF8080" />
+                            Cancel
                           </Button>
                         </div>
                       </div>
-                      <span className="inline-flex bg-black text-white text-xs font-semibold px-3 py-1 rounded-full justify-center w-20">
-                        {blog.category}
-                      </span>
                     </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2 break-words">
-                      {blog.content}
-                    </p>
-                    <div className="text-xs text-muted-foreground mt-2">
-                      {new Date(blog.createdAt).toLocaleDateString("id-ID")}
+                  ) : (
+                    // if not in edit mode (shows the list of blogs)
+                    <div className="flex flex-col gap-2">
+                      <div className="flex flex-col gap-0">
+                        <div className="flex justify-between items-start">
+                          <h2 className="text-base font-bold">{blog.title}</h2>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="cursor-pointer"
+                              onClick={() => handleEdit(blog)}
+                            >
+                              <PenIcon color="#364153" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="cursor-pointer"
+                              onClick={() => handleDelete(blog.id)}
+                            >
+                              <Trash2Icon color="#FF8080" />
+                            </Button>
+                          </div>
+                        </div>
+                        <span className="inline-flex bg-black text-white text-xs font-semibold px-3 py-1 rounded-full justify-center w-20">
+                          {blog.category}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-2 break-words">
+                        {blog.content}
+                      </p>
+                      <div className="text-xs text-muted-foreground mt-2">
+                        {new Date(blog.createdAt).toLocaleDateString("id-ID")}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+            </Card>
+          ))}
+        </div>
+      )}
     </Card>
   );
 }

@@ -5,7 +5,7 @@ import axios from "axios";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Filter, Search } from "lucide-react";
+import { Filter, Search, SearchX } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -23,6 +23,7 @@ interface BlogPost {
 
 export default function ExploreSection() {
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [search, setSearch] = useState("");
 
   const fetchBlogs = async () => {
     try {
@@ -38,6 +39,27 @@ export default function ExploreSection() {
   useEffect(() => {
     fetchBlogs();
   }, []);
+
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const handleCategoryClick = (category: string) => {
+    setSelectedCategory((prev) => (prev === category ? null : category));
+  };
+
+  const filteredBlogs = blogs.filter((blog) => {
+    const searchLower = search.toLowerCase();
+    const matchesSearch =
+      blog.title.toLowerCase().includes(searchLower) ||
+      blog.category.toLowerCase().includes(searchLower) ||
+      blog.content.toLowerCase().includes(searchLower) ||
+      blog.author?.username?.toLowerCase().includes(searchLower);
+
+    const matchesCategory = selectedCategory
+      ? blog.category.toLowerCase() === selectedCategory.toLowerCase()
+      : true;
+
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="min-h-screen bg-white">
@@ -64,78 +86,91 @@ export default function ExploreSection() {
                   placeholder="Search articles..."
                   type="text"
                   name="search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600"
                 />
               </div>
             </div>
-            <div className="flex gap-2">
+
+            <div className="w-full md:w-auto flex flex-wrap md:flex-nowrap items-center gap-2">
               <div className="flex flex-col justify-center items-center">
                 <Filter color="#475569" />
               </div>
-              <Button className="rounded-lg cursor-pointer" variant={"outline"}>
-                All
-              </Button>
-              <Button className="rounded-lg cursor-pointer" variant={"outline"}>
-                Technology
-              </Button>
-              <Button className="rounded-lg cursor-pointer" variant={"outline"}>
-                Food
-              </Button>
-              <Button className="rounded-lg cursor-pointer" variant={"outline"}>
-                Travel
-              </Button>
-              <Button className="rounded-lg cursor-pointer" variant={"outline"}>
-                Health
-              </Button>
-              <Button className="rounded-lg cursor-pointer" variant={"outline"}>
-                Finance
-              </Button>
+              {["All", "Technology", "Food", "Travel", "Health", "Finance"].map(
+                (category) => (
+                  <Button
+                    key={category}
+                    className={`rounded-lg cursor-pointer transition
+                      text-sm px-3 py-1
+                      md:text-base md:px-4 md:py-2
+                      ${
+                        selectedCategory === category ||
+                        (category === "All" && !selectedCategory)
+                          ? "bg-black text-white hover:bg-neutral-800 hover:text-white"
+                          : "bg-transparent"
+                      }`}
+                    variant="outline"
+                    onClick={() =>
+                      setSelectedCategory(category === "All" ? null : category)
+                    }
+                  >
+                    {category}
+                  </Button>
+                )
+              )}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 py-10">
-            {blogs.map((blog) => (
-              <Link href={`/blog-detail/${blog.title}`} key={blog.id}>
-                <Card className="p-4 rounded-xl shadow-sm transition hover:shadow-lg text-left cursor-pointer">
-                  <div className="flex flex-col gap-1">
-                    <div className="w-full h-40 rounded-md overflow-hidden mb-3 relative">
-                      <Image
-                        src={blog?.thumbnail}
-                        alt={blog.title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-
-                    <div className="justify-between">
-                      <span className="bg-black text-white text-xs font-semibold px-3 py-1 rounded-full w-50">
-                        {blog.category}
-                      </span>
-
-                      <div className="flex flex-col gap-1">
-                        <h2 className="text-lg font-semibold mt-2 break-words truncate whitespace-nowrap overflow-hidden max-w-205">
-                          {blog.title}
-                        </h2>
-
-                        <p
-                          className="text-sm text-muted-foreground line-clamp-2 mt-1 break-words truncate whitespace-nowrap overflow-hidden max-w-205"
-                          rel="noopener noreferrer"
-                        >
-                          {blog.content}
-                        </p>
+          {filteredBlogs.length === 0 ? (
+            <p className="text-gray-500 text-center text-2xl font-medium flex flex-col gap-2 justify-center items-center pt-25">
+              <SearchX color="#475569" size={150} /> Blog Not Found
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 py-10">
+              {filteredBlogs.map((blog) => (
+                <Link href={`/blog-detail/${blog.title}`} key={blog.id}>
+                  <Card className="p-4 rounded-xl shadow-sm transition hover:shadow-lg text-left cursor-pointer">
+                    <div className="flex flex-col gap-1">
+                      <div className="w-full h-40 rounded-md overflow-hidden mb-3 relative">
+                        <Image
+                          src={blog?.thumbnail}
+                          alt={blog.title}
+                          fill
+                          className="object-cover"
+                        />
                       </div>
 
-                      <div className="text-xs text-muted-foreground mt-2 flex gap-1">
-                        {new Date(blog.createdAt).toLocaleDateString("id-ID")}
-                        <p>•</p>
-                        <h2>{blog.author.username}</h2>
+                      <div className="justify-between">
+                        <span className="bg-black text-white text-xs font-semibold px-3 py-1 rounded-full w-50">
+                          {blog.category}
+                        </span>
+
+                        <div className="flex flex-col gap-1">
+                          <h2 className="text-lg font-semibold mt-2 break-words truncate whitespace-nowrap overflow-hidden max-w-205">
+                            {blog.title}
+                          </h2>
+
+                          <p
+                            className="text-sm text-muted-foreground line-clamp-2 mt-1 break-words truncate whitespace-nowrap overflow-hidden max-w-205"
+                            rel="noopener noreferrer"
+                          >
+                            {blog.content}
+                          </p>
+                        </div>
+
+                        <div className="text-xs text-muted-foreground mt-2 flex gap-1">
+                          {new Date(blog.createdAt).toLocaleDateString("id-ID")}
+                          <p>•</p>
+                          <h2>{blog.author.username}</h2>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              </Link>
-            ))}
-          </div>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

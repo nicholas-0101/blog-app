@@ -70,17 +70,28 @@ function Navbar() {
         {account?.email ? (
           <div className="relative" ref={menuRef}>
             <Button onClick={() => setMenuOpen(!menuOpen)} variant="link">
-              <p className="font-black font-sans text-[#18182b]">{`Hello, ${account.email}`}</p>
+              <p className="font-black font-sans text-[#18182b]">{`Hello, ${account.username}`}</p>
             </Button>
 
             {menuOpen && (
               <div className="absolute right-0 mt-2 w-30 bg-white border border-gray-300 rounded z-50">
+                <Link href={"/account-manager"}>
+                  <Button
+                    onClick={() => {
+                      setMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100 hover:text-[#18182b]"
+                    variant="ghost"
+                  >
+                    Account
+                  </Button>
+                </Link>
                 <Button
                   onClick={() => {
                     signOut();
                     setMenuOpen(false);
                   }}
-                  className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 hover:text-[#18182b]"
+                  className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 hover:text-[#910101]"
                   variant="ghost"
                 >
                   Sign Out

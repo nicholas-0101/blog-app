@@ -27,11 +27,12 @@ async function BlogDetailPage(props: IBlogDetailPageProps) {
   console.log(detail);
   return (
     <section className="flex justify-center ">
-      <div className="mt-10 flex flex-col gap-2 px-50 py-10 max-w-6xl">
+      <div className="mt-7 flex flex-col gap-2 px-50 py-10 max-w-6xl">
         <Image // using image from next/image, so the image link automaticly converted to webp and compresed
           src={detail.thumbnail}
           width={1200}
           height={800}
+          style={{ width: "1152px", height: "400px", objectFit: "cover" }}
           alt="thumbnail"
         />
         <div className="flex gap-1 text-neutral-500">

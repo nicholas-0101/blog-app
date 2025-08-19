@@ -18,11 +18,15 @@ import axios from "axios";
 import { useAccountStore } from "@/lib/store/accountStore";
 import { Eye, EyeOff } from "lucide-react";
 
+interface SignInError {
+  email?: string;
+  password?: string;
+}
+
 export default function SignInPage() {
   const router = useRouter();
-
+  const [error, setError] = useState<SignInError>({});
   const [showPassword, setShowPassword] = useState(false);
-
   const { setAccount } = useAccountStore();
   const onSignin = async (values: ISignInValue) => {
     try {
@@ -37,13 +41,23 @@ export default function SignInPage() {
       if (result.data.success) {
         setAccount(result.data.user); // menyimpan data ke global state zustand
         localStorage.setItem("tkn", result.data.user.token); // menyimpan data id ke localStorage untuk nanti keeplogin
-        alert(`Welcome, ${result.data.user.email}`);
+        alert(`Welcome, ${result.data.user.username}`);
         window.location.replace("/");
       } else {
         alert("Account not found");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
+      const status = error.response?.status;
+      const message = error.response?.data?.message;
+
+      if (status === 404) {
+        setError({ email: "*account not found" });
+      } else if (status === 401) {
+        setError({ password: "*incorrect password" });
+      } else {
+        setError({ email: "*something went wrong. Try again later" });
+      }
     }
   };
 
@@ -73,9 +87,11 @@ export default function SignInPage() {
                         <div className="flex flex-col gap-3">
                           <div className="flex flex-col gap-0">
                             <label>Your email</label>
-                            <span className="text-red-400 italic text-sm">
-                              {errors.email}
-                            </span>
+                            <div className="flex gap-2">
+                              <span className="text-red-400 italic text-sm">
+                                {errors.email}
+                              </span>
+                            </div>
                           </div>
 
                           <Input
@@ -84,16 +100,17 @@ export default function SignInPage() {
                             placeholder="your@email.com"
                             className="p-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600"
                             onChange={handleChange}
-                            required
                           />
                         </div>
 
                         <div className="flex flex-col gap-3">
                           <div className="flex flex-col gap-0">
                             <label>Your password</label>
-                            <span className="text-red-400 italic text-sm">
-                              {errors.password}
-                            </span>
+                            <div className="flex gap-2">
+                              <span className="text-red-400 italic text-sm">
+                                {errors.password}
+                              </span>
+                            </div>
                           </div>
 
                           <div className="relative w-full">
@@ -120,13 +137,21 @@ export default function SignInPage() {
                           </div>
                         </div>
 
-                        <Button
-                          variant={"outline"}
-                          type="submit"
-                          className="text-white p-2 rounded cursor-pointer hover:bg-neutral-800 hover:text-white transition-colors border-gray-300 mt-[20px] bg-black"
-                        >
-                          Sign In
-                        </Button>
+                        <div className="flex flex-col gap-0">
+                          {(error.email || error.password) && (
+                            <span className="text-red-400 italic text-sm">
+                              {error.email || error.password}
+                            </span>
+                          )}
+
+                          <Button
+                            variant={"outline"}
+                            type="submit"
+                            className="text-white p-2 rounded cursor-pointer hover:bg-neutral-800 hover:text-white transition-colors border-gray-300 mt-2 bg-black"
+                          >
+                            Sign In
+                          </Button>
+                        </div>
                       </div>
                     </Card>
                   </div>

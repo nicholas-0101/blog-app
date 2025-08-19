@@ -26,6 +26,7 @@ export default function createSection() {
 
   const onPost = async (values: ICreateValue) => {
     try {
+      console.log("account: ", account);
       const payload = { // to store the data to backend
         title: values.title,
         thumbnail: values.thumbnail,

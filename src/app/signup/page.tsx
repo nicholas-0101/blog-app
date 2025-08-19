@@ -12,9 +12,14 @@ import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
 import { useAccountStore } from "@/lib/store/accountStore";
 
+interface SignInError {
+  email?: string;
+  username?: string;
+}
+
 const SignupPage = () => {
   const router = useRouter();
-
+  const [error, setError] = useState<SignInError>({});
   const [showPassword, setShowPassword] = useState(false);
 
   // add user data to database
@@ -31,8 +36,16 @@ const SignupPage = () => {
 
       alert(result.data.message);
       router.replace("/signin");
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
+      const status = error.response?.status;
+      const message = error.response?.data?.message;
+
+      if (status === 400 && message === "Email already registered") {
+        setError({ email: "*email has registered" });
+      } else if (status === 400 && message === "Username already registered") {
+        setError({ username: "*username already used" });
+      } 
     }
   };
 
@@ -126,13 +139,21 @@ const SignupPage = () => {
                             </Button>
                           </div>
                         </div>
-                        <Button
-                          variant={"outline"}
-                          type="submit"
-                          className="text-white p-2 rounded cursor-pointer hover:bg-neutral-800 hover:text-white transition-colors border-gray-300 mt-[20px] bg-black"
-                        >
-                          Sign Up
-                        </Button>
+                        <div className="flex flex-col gap-0">
+                          {(error.email || error.username) && (
+                            <span className="text-red-400 italic text-sm">
+                              {error.email || error.username}
+                            </span>
+                          )}
+
+                          <Button
+                            variant={"outline"}
+                            type="submit"
+                            className="text-white p-2 rounded cursor-pointer hover:bg-neutral-800 hover:text-white transition-colors border-gray-300 mt-2 bg-black"
+                          >
+                            Sign Up
+                          </Button>
+                        </div>
                       </div>
                     </Card>
                   </div>
