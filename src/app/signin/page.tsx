@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,16 +27,14 @@ export default function SignInPage() {
   const router = useRouter();
   const [error, setError] = useState<SignInError>({});
   const [showPassword, setShowPassword] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { setAccount } = useAccountStore();
   const onSignin = async (values: ISignInValue) => {
     try {
-      const result = await axios.post(
-        "http://localhost:4001/blog/user/signin",
-        {
-          email: values.email,
-          password: values.password,
-        }
-      );
+      const result = await axios.post("http://localhost:4400/auth/signin", {
+        email: values.email,
+        password: values.password,
+      });
       console.log(result.data);
       if (result.data.success) {
         setAccount(result.data.user); // menyimpan data ke global state zustand
@@ -60,6 +58,13 @@ export default function SignInPage() {
       }
     }
   };
+
+  useEffect(() => {
+    setMounted(true);
+    if (localStorage.getItem("tkn")) {
+      router.replace("/"); 
+    }
+  }, [router]);
 
   return (
     <div className="flex flex-col h-screen">

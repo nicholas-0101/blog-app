@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
@@ -10,7 +10,6 @@ import { ISignUpValue, SignUpSchema } from "./SignupSchema";
 import { Formik, Form, FormikProps, FormikValues } from "formik";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
-import { useAccountStore } from "@/lib/store/accountStore";
 
 interface SignInError {
   email?: string;
@@ -19,23 +18,21 @@ interface SignInError {
 
 const SignupPage = () => {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [error, setError] = useState<SignInError>({});
   const [showPassword, setShowPassword] = useState(false);
 
   // add user data to database
   const onSignup = async (values: ISignUpValue) => {
     try {
-      const result = await axios.post(
-        "http://localhost:4001/blog/user/signup",
-        {
-          username: values.username,
-          email: values.email,
-          password: values.password,
-        }
-      );
+      const result = await axios.post("http://localhost:4400/auth/signup", {
+        username: values.username,
+        email: values.email,
+        password: values.password,
+      });
 
-      alert(result.data.message);
-      router.replace("/signin");
+      // alert(result.data.message);
+      router.replace("/pre-verify");
     } catch (error: any) {
       console.log(error);
       const status = error.response?.status;
@@ -45,9 +42,16 @@ const SignupPage = () => {
         setError({ email: "*email has registered" });
       } else if (status === 400 && message === "Username already registered") {
         setError({ username: "*username already used" });
-      } 
+      }
     }
   };
+
+  useEffect(() => {
+    setMounted(true);
+    if (localStorage.getItem("tkn")) {
+      router.replace("/"); 
+    }
+  }, [router]);
 
   return (
     <div className="flex flex-col h-screen">

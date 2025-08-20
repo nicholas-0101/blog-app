@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { usePathname } from "next/navigation";
 import { useAccountStore } from "@/lib/store/accountStore";
 import Link from "next/link";
 import axios from "axios";
@@ -9,6 +10,7 @@ function Navbar() {
   const account = useAccountStore((state) => state.account);
   const setAccount = useAccountStore((state) => state.setAccount);
   const signOut = useAccountStore((state) => state.signOut);
+  const pathname = usePathname();
 
   //dropdown menu if we click username
   const [menuOpen, setMenuOpen] = useState(false);
@@ -29,7 +31,7 @@ function Navbar() {
   const keeplogin = async () => {
     try {
       if (localStorage.getItem("tkn")) {
-        const result = await axios.get(`http://localhost:4001/blog/user/keep`, {
+        const result = await axios.get(`http://localhost:4400/auth/keep`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("tkn")}`,
           },
@@ -47,6 +49,14 @@ function Navbar() {
   useEffect(() => {
     keeplogin();
   }, []);
+
+  // list of routes where navbar should be hidden
+  const hiddenRoutes = ["/signin", "/signup", "/verify", "/pre-verify"];
+
+  if (hiddenRoutes.includes(pathname)) {
+    return null;
+  }
+
   return (
     <header className="fixed w-full top-0 flex items-center justify-between px-8 py-4 bg-white border border-neutral-300 z-50">
       <div className="text-2xl font-bold text-black">BlogPlatform</div>
